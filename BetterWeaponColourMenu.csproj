@@ -104,7 +104,8 @@
     <Reference Include="TwitchLib.Unity">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\ULTRAKILL\ULTRAKILL_Data\Managed\TwitchLib.Unity.dll</HintPath>
     </Reference>
-    <Reference Include="UMM">
+    <Reference Include="UMM, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\ULTRAKILL\BepInEx\plugins\UMM\UMM.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Analytics.DataPrivacy">
