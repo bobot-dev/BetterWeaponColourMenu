@@ -184,29 +184,33 @@ namespace BetterWeaponColourMenu
     {
         public override void OnButtonTriggered()
         {
-            
+
+            //var key = $"customPresetOverride.{weaponType}{(alt ? ".a" : "")}.CurrentPresetCollectionIndex";
+            //if (!UKMod.PersistentModDataExists(key, BetterWeaponColourMenu.GUID)) UKMod.SetPersistentModData(key, "-1", BetterWeaponColourMenu.GUID);
+
+            //var currentPresetColI = UKMod.RetrieveFloatPersistentModData(BetterWeaponColourMenu.GUID, key);
 
             switch (weaponType)
             {
                 case "Revolver":
-                    MonoSingleton<GunColorController>.Instance.revolverColors[index] = BetterWeaponColourMenu.baseWeaponPresetColours[weaponType][index - 1];
-                    text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
+                    MonoSingleton<GunColorController>.Instance.revolverColors[index] = new GunColorPreset(Color.black, Color.black, Color.black);
+                    //text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
                     break;
                 case "Shotgun":
-                    MonoSingleton<GunColorController>.Instance.shotgunColors[index] = BetterWeaponColourMenu.baseWeaponPresetColours[weaponType][index - 1];
-                    text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
+                    MonoSingleton<GunColorController>.Instance.shotgunColors[index] = new GunColorPreset(Color.black, Color.black, Color.black);
+                    //text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
                     break;
                 case "Nailgun":
-                    MonoSingleton<GunColorController>.Instance.nailgunColors[index] = BetterWeaponColourMenu.baseWeaponPresetColours[weaponType][index - 1];
-                    text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
+                    MonoSingleton<GunColorController>.Instance.nailgunColors[index] = new GunColorPreset(Color.black, Color.black, Color.black);
+                    //text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
                     break;
                 case "Railcannon":
-                    MonoSingleton<GunColorController>.Instance.railcannonColors[index] = BetterWeaponColourMenu.baseWeaponPresetColours[weaponType][index - 1];
-                    text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
+                    MonoSingleton<GunColorController>.Instance.railcannonColors[index] = new GunColorPreset(Color.black, Color.black, Color.black);
+                    //text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
                     break;
                 case "RocketLauncher":
-                    MonoSingleton<GunColorController>.Instance.rocketLauncherColors[index] = BetterWeaponColourMenu.baseWeaponPresetColours[weaponType][index - 1];
-                    text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
+                    MonoSingleton<GunColorController>.Instance.rocketLauncherColors[index] = new GunColorPreset(Color.black, Color.black, Color.black);
+                    //text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
                     break;
             }
 
@@ -215,10 +219,11 @@ namespace BetterWeaponColourMenu
 
 
 
+
             typeof(UKAPI).Assembly.GetType("UMM.UKAPI+SaveFileHandler").GetMethod("DumpFile", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
 
             transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().SetPreset(index);
-            if (transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts != null) transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts[index] = text.text;
+            //if (transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts != null) transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts[index] = text.text;
 
             base.OnButtonTriggered();
         }
@@ -232,7 +237,7 @@ namespace BetterWeaponColourMenu
     {
         public override void OnButtonTriggered()
         {
-            text.text = "Custom " + index;
+            //text.text = "Custom " + index;
 
             switch(weaponType)
             {
@@ -277,7 +282,7 @@ namespace BetterWeaponColourMenu
             typeof(UKAPI).Assembly.GetType("UMM.UKAPI+SaveFileHandler").GetMethod("DumpFile", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
 
             transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().SetPreset(index);
-            if (transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts != null) transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts[index] = text.text;
+            //if (transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts != null) transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts[index] = text.text;
 
             base.OnButtonTriggered();
         }
@@ -311,8 +316,15 @@ namespace BetterWeaponColourMenu
             if (side == Side.Right) Toggle(currentPresetColI < 24);
         }
 
-        void Start()
+        void Awake()
         {
+            var key = $"customPresetOverride.{weaponType}{(alt ? ".a" : "")}.CurrentPresetCollectionIndex";
+            if (!UKMod.PersistentModDataExists(key, BetterWeaponColourMenu.GUID)) UKMod.SetPersistentModData(key, "-1", BetterWeaponColourMenu.GUID);
+
+            var currentPresetColI = UKMod.RetrieveFloatPersistentModData(BetterWeaponColourMenu.GUID, key);
+            currentPresetColI -= (int)side;
+            UKMod.SetPersistentModData(key, currentPresetColI.ToString(), BetterWeaponColourMenu.GUID);
+
             OnButtonTriggered();
         }
 
@@ -358,6 +370,8 @@ namespace BetterWeaponColourMenu
 
                     template.GetChild(0).GetComponentInChildren<UnityEngine.UI.Text>().text = text;
 
+                    if (template.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts != null) transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts[i - 1] = text;
+
                     var saveButton = template.Find("Save").gameObject;
                     var clearButton = template.Find("Clear").gameObject;
 
@@ -398,6 +412,8 @@ namespace BetterWeaponColourMenu
                     var template = transform.parent.Find($"Template {i + 1}");
 
                     template.GetChild(0).GetComponentInChildren<UnityEngine.UI.Text>().text = $"Custom {(4 * currentPresetColI) + i}";
+
+                    if (template.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts != null) transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts[i - 1] = $"Custom {(4 * currentPresetColI) + i}";
 
 
                     var saveButton = template.Find("Save").gameObject;

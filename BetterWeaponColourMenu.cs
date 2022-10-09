@@ -52,9 +52,6 @@ namespace BetterWeaponColourMenu
 		{
 			foreach (ShopGearChecker shopGearChecker in Resources.FindObjectsOfTypeAll<ShopGearChecker>())
 			{
-
-				//if (!shopGearChecker.gameObject.activeInHierarchy) continue;
-
 				foreach(var name in windowNames)
                 {
 					var pannel = shopGearChecker.gameObject.transform.Find($"{name}Window");
