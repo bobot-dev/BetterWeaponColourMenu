@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace BetterWeaponColourMenu
 {
 	[HarmonyPatch]
-    [UKPlugin("Better Weapon Colour Menu", "1.0.1", "A simple mod that improves the custom weapon colour system", true, true)]
+    [UKPlugin("Better Weapon Colour Menu", "1.1.0", "A simple mod that improves the custom weapon colour system", true, true)]
     public class BetterWeaponColourMenu : UKMod
     {
 
