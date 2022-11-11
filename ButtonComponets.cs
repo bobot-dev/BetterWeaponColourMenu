@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UMM;
 using System.Reflection;
+using UnityEngine.UI;
 
 namespace BetterWeaponColourMenu
 {
@@ -15,11 +16,17 @@ namespace BetterWeaponColourMenu
 
         public GameObject activator;
 
+        void Awake()
+        {
+            if (activator != null && activator.activeSelf) activator.SetActive(false);
+        }
+
         private void Update()
         {
             if (activator != null && activator.activeSelf)
-            {
+            {              
                 activator.SetActive(false);
+                if (isEnabled) isPressed = !isPressed;
                 if (isEnabled) OnButtonTriggered();
             }
         }
@@ -36,6 +43,115 @@ namespace BetterWeaponColourMenu
         public bool triggerMessage = true;
 
         public bool isEnabled = true;
+
+        public bool isPressed = false;
+
+    }
+
+    class ToggleEffectButton : ButtonBase
+    {
+        void Start()
+        {
+            isPressed = bool.Parse(SaveData.RetriveSaveValue("useColourEffects", $"{weaponNum}{(alt ? ".a" : "")}", "false"));
+
+            if (CheckBox && CheckBox.GetComponent<Image>()) CheckBox.GetComponent<Image>().fillCenter = isPressed;
+        }
+
+        public override void OnButtonTriggered()
+        {
+            if (CheckBox && CheckBox.GetComponent<Image>()) CheckBox.GetComponent<Image>().fillCenter = isPressed;
+
+            SaveData.SetSaveValue("useColourEffects", $"{weaponNum}{(alt ? ".a" : "")}", isPressed);
+
+            base.OnButtonTriggered();
+        }
+
+        public GameObject CheckBox;
+        public int weaponNum;
+        public bool alt;
+    }
+
+    class CopyVarientColourButton : ButtonBase
+    {
+        void Start()
+        {
+
+            
+
+            //var key = $"customPresetOverride.W{weaponNum}{(alt ? ".a" : "")}.{colorNum}";
+            //if (!UKMod.PersistentModDataExists(key, BetterWeaponColourMenu.GUID)) UKMod.SetPersistentModData(key, "false", BetterWeaponColourMenu.GUID);
+
+            //isPressed = UKMod.RetrieveBooleanPersistentModData(BetterWeaponColourMenu.GUID, key);
+            isPressed = bool.Parse(SaveData.RetriveSaveValue($"useVariationColour.{colorNum}", $"{weaponNum}{(alt ? ".a" : "")}", "false")); 
+
+            
+
+            OnButtonTriggered();
+        }
+
+        public override void OnButtonTriggered()
+        {
+            
+            if (CheckBox && CheckBox.GetComponent<Image>()) CheckBox.GetComponent<Image>().fillCenter = isPressed;
+
+
+            //GameObject GC = GameObject.FindGameObjectWithTag("GunControl");
+            GameObject GC = GunControl.instance.gameObject;
+
+            foreach (Renderer renderer in GC.GetComponentsInChildren<Renderer>(true))
+            {
+                if (renderer.gameObject.GetComponent<VariationColorHandler>())
+                {
+                    if (renderer.gameObject.GetComponent<VariationColorHandler>().weaponnum == weaponNum && renderer.gameObject.GetComponent<VariationColorHandler>().alt == alt)
+                    {
+                        VariationColorHandler VCH = renderer.gameObject.GetComponent<VariationColorHandler>();
+                        switch (colorNum)
+                        {
+                            case 1:
+                                VCH.swapColor1 = isPressed;
+                                break;
+                            case 2:
+                                VCH.swapColor2 = isPressed;
+                                break;
+                            case 3:
+                                VCH.swapColor3 = isPressed;
+                                break;
+                            default:
+                                break;
+                        }
+
+                        var colourSetter = GetComponentInParent<GunColorSetter>();
+
+                        colourSetter.transform.Find("Red").GetComponentInChildren<ControllerPointer>().enabled = !isPressed;
+                        colourSetter.transform.Find("Red").GetComponentInChildren<Slider>().interactable = !isPressed;
+
+                        colourSetter.transform.Find("Green").GetComponentInChildren<ControllerPointer>().enabled = !isPressed;
+                        colourSetter.transform.Find("Green").GetComponentInChildren<Slider>().interactable = !isPressed;
+
+                        colourSetter.transform.Find("Blue").GetComponentInChildren<ControllerPointer>().enabled = !isPressed;
+                        colourSetter.transform.Find("Blue").GetComponentInChildren<Slider>().interactable = !isPressed;
+
+                        //Debug.Log("CopyVarientColourButton.isPressed = " + isPressed);
+
+                        SaveData.SetSaveValue($"useVariationColour.{colorNum}", $"{weaponNum}{(alt ? ".a" : "")}", isPressed);
+
+                        //UKMod.SetPersistentModData($"customPresetOverride.W{weaponNum}{(alt ? ".a" : "")}.{colorNum}", isPressed.ToString(), BetterWeaponColourMenu.GUID);
+
+                        //typeof(UKAPI).Assembly.GetType("UMM.UKAPI+SaveFileHandler").GetMethod("DumpFile", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+
+                        if (renderer.GetComponent<GunColorSetter>()) renderer.GetComponent<GunColorSetter>().UpdateColor();
+                    }
+                }
+            }
+
+            base.OnButtonTriggered();
+        }
+
+        public GameObject CheckBox;
+        public GunColorSetter GunColSetter;
+        public int colorNum;
+        public int weaponNum;
+        public bool alt;
     }
 
     class CopyButton : ButtonBase
@@ -192,23 +308,23 @@ namespace BetterWeaponColourMenu
 
             switch (weaponType)
             {
-                case "Revolver":
+                case 1:
                     MonoSingleton<GunColorController>.Instance.revolverColors[index] = new GunColorPreset(Color.black, Color.black, Color.black);
                     //text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
                     break;
-                case "Shotgun":
+                case 2:
                     MonoSingleton<GunColorController>.Instance.shotgunColors[index] = new GunColorPreset(Color.black, Color.black, Color.black);
                     //text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
                     break;
-                case "Nailgun":
+                case 3:
                     MonoSingleton<GunColorController>.Instance.nailgunColors[index] = new GunColorPreset(Color.black, Color.black, Color.black);
                     //text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
                     break;
-                case "Railcannon":
+                case 4:
                     MonoSingleton<GunColorController>.Instance.railcannonColors[index] = new GunColorPreset(Color.black, Color.black, Color.black);
                     //text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
                     break;
-                case "RocketLauncher":
+                case 5:
                     MonoSingleton<GunColorController>.Instance.rocketLauncherColors[index] = new GunColorPreset(Color.black, Color.black, Color.black);
                     //text.text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][index - 1];
                     break;
@@ -217,10 +333,21 @@ namespace BetterWeaponColourMenu
 
             //UKMod.SetPersistentModData($"customPresetOverride.{BetterWeaponColourMenu.currentPresetCollectionIndex}.{weaponType}.{index}.isCustom", "false", BetterWeaponColourMenu.GUID);
 
+            //var key = $"customPresetOverride.{weaponType}{(alt ? ".a" : "")}.CurrentPresetCollectionIndex";
+            //if (!UKMod.PersistentModDataExists(key, BetterWeaponColourMenu.GUID)) UKMod.SetPersistentModData(key, "-1", BetterWeaponColourMenu.GUID);
+
+            //var currentPresetColI = UKMod.RetrieveFloatPersistentModData(BetterWeaponColourMenu.GUID, key);
+            var currentPresetColI = int.Parse(SaveData.RetriveSaveValue("currentPresetCollectionIndex", $"{weaponType}{(alt ? ".a" : "")}", "-1"));
+
+            for (int i = 1; i <= 3; i++)
+            {
+                //UKMod.SetPersistentModData($"customPresetOverride.{currentPresetColI}.W{weaponType}{(alt ? ".a" : "")}.{i}.{index}", false.ToString(), BetterWeaponColourMenu.GUID);
+
+                SaveData.SetSaveValue($"useVariationColour.{currentPresetColI}.{i}", $"{weaponType}{(alt ? ".a" : "")}", false);
+            }
 
 
-
-            typeof(UKAPI).Assembly.GetType("UMM.UKAPI+SaveFileHandler").GetMethod("DumpFile", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+            //typeof(UKAPI).Assembly.GetType("UMM.UKAPI+SaveFileHandler").GetMethod("DumpFile", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
 
             transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().SetPreset(index);
             //if (transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts != null) transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts[index] = text.text;
@@ -228,9 +355,10 @@ namespace BetterWeaponColourMenu
             base.OnButtonTriggered();
         }
 
-        public string weaponType;
+        public int weaponType;
         public int index = 1;
         public UnityEngine.UI.Text text;
+        public bool alt;
     }
 
     class SaveButton : ButtonBase
@@ -241,28 +369,32 @@ namespace BetterWeaponColourMenu
 
             switch(weaponType)
             {
-                case "Revolver":
+                case 1:
                     MonoSingleton<GunColorController>.Instance.revolverColors[index] = MonoSingleton<GunColorController>.Instance.CustomGunColorPreset(1, alt);
                     break;
-                case "Shotgun":
+                case 2:
                     MonoSingleton<GunColorController>.Instance.shotgunColors[index] = MonoSingleton<GunColorController>.Instance.CustomGunColorPreset(2, false);                   
                     break;
-                case "Nailgun":
+                case 3:
                     MonoSingleton<GunColorController>.Instance.nailgunColors[index] = MonoSingleton<GunColorController>.Instance.CustomGunColorPreset(3, alt);
                     break;
-                case "Railcannon":
+                case 4:
                     MonoSingleton<GunColorController>.Instance.railcannonColors[index] = MonoSingleton<GunColorController>.Instance.CustomGunColorPreset(4, false);
                     break;
-                case "RocketLauncher":
+                case 5:
                     MonoSingleton<GunColorController>.Instance.rocketLauncherColors[index] = MonoSingleton<GunColorController>.Instance.CustomGunColorPreset(5, false);
                     break;
             }
 
-            var key = $"customPresetOverride.{weaponType}{(alt ? ".a" : "")}.CurrentPresetCollectionIndex";
-            if (!UKMod.PersistentModDataExists(key, BetterWeaponColourMenu.GUID)) UKMod.SetPersistentModData(key, "-1", BetterWeaponColourMenu.GUID);
 
-            var currentPresetColI = UKMod.RetrieveFloatPersistentModData(BetterWeaponColourMenu.GUID, key);
+            var currentPresetColI = int.Parse(SaveData.RetriveSaveValue("currentPresetCollectionIndex", $"{weaponType}{(alt ? ".a" : "")}", "-1"));
 
+
+            SaveData.SetSaveValue($"customPreset.{currentPresetColI}.{1}.{index}", $"{weaponType}", ColorUtility.ToHtmlStringRGB(MonoSingleton<GunColorController>.Instance.CustomGunColorPreset(weaponType, alt).color1));
+            SaveData.SetSaveValue($"customPreset.{currentPresetColI}.{2}.{index}", $"{weaponType}", ColorUtility.ToHtmlStringRGB(MonoSingleton<GunColorController>.Instance.CustomGunColorPreset(weaponType, alt).color2));
+            SaveData.SetSaveValue($"customPreset.{currentPresetColI}.{3}.{index}", $"{weaponType}", ColorUtility.ToHtmlStringRGB(MonoSingleton<GunColorController>.Instance.CustomGunColorPreset(weaponType, alt).color3));
+
+            /*
             UKMod.SetPersistentModData($"customPresetOverride.{currentPresetColI}.{weaponType}.{index}.1.r", MonoSingleton<GunColorController>.Instance.CustomGunColorPreset(weaponNumThing[weaponType], alt).color1.r.ToString(), BetterWeaponColourMenu.GUID);
             UKMod.SetPersistentModData($"customPresetOverride.{currentPresetColI}.{weaponType}.{index}.1.g", MonoSingleton<GunColorController>.Instance.CustomGunColorPreset(weaponNumThing[weaponType], alt).color1.g.ToString(), BetterWeaponColourMenu.GUID);
             UKMod.SetPersistentModData($"customPresetOverride.{currentPresetColI}.{weaponType}.{index}.1.b", MonoSingleton<GunColorController>.Instance.CustomGunColorPreset(weaponNumThing[weaponType], alt).color1.b.ToString(), BetterWeaponColourMenu.GUID);
@@ -274,12 +406,32 @@ namespace BetterWeaponColourMenu
             UKMod.SetPersistentModData($"customPresetOverride.{currentPresetColI}.{weaponType}.{index}.3.r", MonoSingleton<GunColorController>.Instance.CustomGunColorPreset(weaponNumThing[weaponType], alt).color3.r.ToString(), BetterWeaponColourMenu.GUID);
             UKMod.SetPersistentModData($"customPresetOverride.{currentPresetColI}.{weaponType}.{index}.3.g", MonoSingleton<GunColorController>.Instance.CustomGunColorPreset(weaponNumThing[weaponType], alt).color3.g.ToString(), BetterWeaponColourMenu.GUID);
             UKMod.SetPersistentModData($"customPresetOverride.{currentPresetColI}.{weaponType}.{index}.3.b", MonoSingleton<GunColorController>.Instance.CustomGunColorPreset(weaponNumThing[weaponType], alt).color3.b.ToString(), BetterWeaponColourMenu.GUID);
+            */
+
+
+            for(int i = 1; i <= 3; i++)
+            {
+                //string key2 = $"customPresetOverride.W{weaponNumThing[weaponType]}{(alt ? ".a" : "")}.{i}";
+
+                //if (!UKMod.PersistentModDataExists(key2, BetterWeaponColourMenu.GUID)) UKMod.SetPersistentModData(key2, "false", BetterWeaponColourMenu.GUID);
+
+                //var b = UKMod.RetrieveBooleanPersistentModData(BetterWeaponColourMenu.GUID, key2);
+                var b = SaveData.RetriveSaveValue($"useVariationColour.{i}", $"{weaponType}{(alt ? ".a" : "")}", "false");
+                //UKMod.SetPersistentModData($"customPresetOverride.{currentPresetColI}.W{weaponNumThing[weaponType]}{(alt ? ".a" : "")}.{i}.{index}", b.ToString(), BetterWeaponColourMenu.GUID);
+
+                SaveData.SetSaveValue($"useVariationColour.{currentPresetColI}.{i}", $"{weaponType}{(alt ? ".a" : "")}", b);
+            }
+
+
+           
+
+
 
 
             //UKMod.SetPersistentModData($"customPresetOverride.{BetterWeaponColourMenu.currentPresetCollectionIndex}.{weaponType}.{index}.isCustom", "true", BetterWeaponColourMenu.GUID);
 
 
-            typeof(UKAPI).Assembly.GetType("UMM.UKAPI+SaveFileHandler").GetMethod("DumpFile", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+            //typeof(UKAPI).Assembly.GetType("UMM.UKAPI+SaveFileHandler").GetMethod("DumpFile", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
 
             transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().SetPreset(index);
             //if (transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts != null) transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().originalTemplateTexts[index] = text.text;
@@ -287,30 +439,18 @@ namespace BetterWeaponColourMenu
             base.OnButtonTriggered();
         }
 
-        public string weaponType;
+        public int weaponType;
         public int index = 1;
         public UnityEngine.UI.Text text;
         public bool alt;
 
-        Dictionary<string, int> weaponNumThing = new Dictionary<string, int>()
-        {
-            { "Revolver", 1 },
-            { "Shotgun", 2 },
-            { "Nailgun", 3 },
-            { "Railcannon", 4 },
-            { "RocketLauncher", 5 },
-        };
-        
     }
 
     class NextPresetCollectionButton : ButtonBase
     {
         void OnGUI()
         {
-            var key = $"customPresetOverride.{weaponType}{(alt ? ".a" : "")}.CurrentPresetCollectionIndex";
-            if (!UKMod.PersistentModDataExists(key, BetterWeaponColourMenu.GUID)) UKMod.SetPersistentModData(key, "-1", BetterWeaponColourMenu.GUID);
-
-            var currentPresetColI = UKMod.RetrieveFloatPersistentModData(BetterWeaponColourMenu.GUID, key);
+            var currentPresetColI = int.Parse(SaveData.RetriveSaveValue("currentPresetCollectionIndex", $"{weaponType}{(alt ? ".a" : "")}", "-1"));
 
             if (side == Side.Left) Toggle(currentPresetColI > -1);
             if (side == Side.Right) Toggle(currentPresetColI < 24);
@@ -318,22 +458,20 @@ namespace BetterWeaponColourMenu
 
         void Awake()
         {
-            var key = $"customPresetOverride.{weaponType}{(alt ? ".a" : "")}.CurrentPresetCollectionIndex";
-            if (!UKMod.PersistentModDataExists(key, BetterWeaponColourMenu.GUID)) UKMod.SetPersistentModData(key, "-1", BetterWeaponColourMenu.GUID);
-
-            var currentPresetColI = UKMod.RetrieveFloatPersistentModData(BetterWeaponColourMenu.GUID, key);
+            var currentPresetColI = int.Parse(SaveData.RetriveSaveValue("currentPresetCollectionIndex", $"{weaponType}{(alt ? ".a" : "")}", "-1"));
             currentPresetColI -= (int)side;
-            UKMod.SetPersistentModData(key, currentPresetColI.ToString(), BetterWeaponColourMenu.GUID);
+            SaveData.SetSaveValue("currentPresetCollectionIndex", $"{weaponType}{(alt ? ".a" : "")}", currentPresetColI);
 
             OnButtonTriggered();
         }
 
         public override void OnButtonTriggered()
         {
-            var key = $"customPresetOverride.{weaponType}{(alt ? ".a" : "")}.CurrentPresetCollectionIndex";
-            if (!UKMod.PersistentModDataExists(key, BetterWeaponColourMenu.GUID)) UKMod.SetPersistentModData(key, "-1", BetterWeaponColourMenu.GUID);
+            //var key = $"customPresetOverride.{weaponType}{(alt ? ".a" : "")}.CurrentPresetCollectionIndex";
+            //if (!UKMod.PersistentModDataExists(key, BetterWeaponColourMenu.GUID)) UKMod.SetPersistentModData(key, "-1", BetterWeaponColourMenu.GUID);
 
-             var currentPresetColI = UKMod.RetrieveIntPersistentModData(BetterWeaponColourMenu.GUID, key);
+             //var currentPresetColI = UKMod.RetrieveIntPersistentModData(BetterWeaponColourMenu.GUID, key);
+             var currentPresetColI = int.Parse(SaveData.RetriveSaveValue("currentPresetCollectionIndex", $"{weaponType}{(alt ? ".a" : "")}", "-1"));
 
             currentPresetColI += (int)side;
 
@@ -344,23 +482,23 @@ namespace BetterWeaponColourMenu
                     string text = "FUCK";
                     switch (weaponType)
                     {
-                        case "Revolver":
+                        case 1:
                             MonoSingleton<GunColorController>.Instance.revolverColors[i] = BetterWeaponColourMenu.baseWeaponPresetColours[weaponType][i - 1];
                             text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][i - 1];
                             break;
-                        case "Shotgun":
+                        case 2:
                             MonoSingleton<GunColorController>.Instance.shotgunColors[i] = BetterWeaponColourMenu.baseWeaponPresetColours[weaponType][i - 1];
                             text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][i - 1];
                             break;
-                        case "Nailgun":
+                        case 3:
                             MonoSingleton<GunColorController>.Instance.nailgunColors[i] = BetterWeaponColourMenu.baseWeaponPresetColours[weaponType][i - 1];
                             text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][i - 1];
                             break;
-                        case "Railcannon":
+                        case 4:
                             MonoSingleton<GunColorController>.Instance.railcannonColors[i] = BetterWeaponColourMenu.baseWeaponPresetColours[weaponType][i - 1];
                             text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][i - 1];
                             break;
-                        case "RocketLauncher":
+                        case 5:
                             MonoSingleton<GunColorController>.Instance.rocketLauncherColors[i] = BetterWeaponColourMenu.baseWeaponPresetColours[weaponType][i - 1];
                             text = BetterWeaponColourMenu.baseWeaponPresetNames[weaponType][i - 1];
                             break;
@@ -387,24 +525,24 @@ namespace BetterWeaponColourMenu
             {
                 for (int i = 1; i <= 4; i++)
                 {
-                    
+                    //gunColorTypeGetter.weaponNumber
                     GunColorPreset newPreset = BetterWeaponColourMenu.GetPreset(weaponType, i, currentPresetColI);
 
                     switch (weaponType)
                     {
-                        case "Revolver":
+                        case 1:
                             MonoSingleton<GunColorController>.Instance.revolverColors[i] = newPreset;
                             break;
-                        case "Shotgun":
+                        case 2:
                             MonoSingleton<GunColorController>.Instance.shotgunColors[i] = newPreset;
                             break;
-                        case "Nailgun":
+                        case 3:
                             MonoSingleton<GunColorController>.Instance.nailgunColors[i] = newPreset;
                             break;
-                        case "Railcannon":
+                        case 4:
                             MonoSingleton<GunColorController>.Instance.railcannonColors[i] = newPreset;
                             break;
-                        case "RocketLauncher":
+                        case 5:
                             MonoSingleton<GunColorController>.Instance.rocketLauncherColors[i] = newPreset;
                             break;
                     }
@@ -427,9 +565,11 @@ namespace BetterWeaponColourMenu
                 }
             }
 
+            SaveData.SetSaveValue("currentPresetCollectionIndex", $"{weaponType}{(alt ? ".a" : "")}", currentPresetColI);
+            //UKMod.SetPersistentModData(key, currentPresetColI.ToString(), BetterWeaponColourMenu.GUID);
+            transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().SetPreset(MonoSingleton<PrefsManager>.Instance.GetInt("gunColorPreset." + weaponType + (alt ? ".a" : ""), 0));
 
-            UKMod.SetPersistentModData(key, currentPresetColI.ToString(), BetterWeaponColourMenu.GUID);
-            transform.parent.parent.GetComponentInParent<GunColorTypeGetter>().SetPreset(MonoSingleton<PrefsManager>.Instance.GetInt("gunColorPreset." + BetterWeaponColourMenu.weaponNumberFromName[weaponType] + (alt ? ".a" : ""), 0));
+            //typeof(UKAPI).Assembly.GetType("UMM.UKAPI+SaveFileHandler").GetMethod("DumpFile", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
         }
 
 
@@ -441,7 +581,7 @@ namespace BetterWeaponColourMenu
             gameObject.GetComponentInChildren<UnityEngine.UI.Text>().color = toggle ? Color.white : Color.gray;
         }
 
-        public string weaponType;
+        public int weaponType;
         public bool alt;
         public Side side;
 
