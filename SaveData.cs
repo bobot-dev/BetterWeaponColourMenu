@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,7 +16,7 @@ namespace BetterWeaponColourMenu
         public static void LoadData()
         {
             path = Assembly.GetExecutingAssembly().Location;
-            path = path.Substring(0, path.LastIndexOf("\\")) + "\\saveData.json";
+            path = path.Substring(0, path.LastIndexOf(Path.DirectorySeparatorChar)) + Path.DirectorySeparatorChar + "saveData.json";
             Debug.Log("Saving colour menu data to " + path);
 
             if (!File.Exists(path))
@@ -48,7 +48,7 @@ namespace BetterWeaponColourMenu
         public static void SaveDataToFile()
         {
             path = Assembly.GetExecutingAssembly().Location;
-            path = path.Substring(0, path.LastIndexOf("\\")) + "\\saveData.json";
+            path = path.Substring(0, path.LastIndexOf(Path.DirectorySeparatorChar)) + Path.DirectorySeparatorChar + "saveData.json";
             Debug.Log("Saving colour menu data to " + path);
 
 
